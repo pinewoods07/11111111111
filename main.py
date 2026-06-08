@@ -2,7 +2,16 @@ import streamlit as st
 import yfinance as yf
 import pandas as pd
 import plotly.graph_objects as go
+import time
 import random
+
+# 1. 세션 상태(session_state) 초기화 (버튼들의 상태를 기억하기 위함!)
+if 'berserk_mode' not in st.session_state:
+    st.session_state.berserk_mode = False
+if 'stock_pump' not in st.session_state:
+    st.session_state.stock_pump = False
+if 'fortune_msg' not in st.session_state:
+    st.session_state.fortune_msg = "🔮 위의 구슬을 누르면 외계 정령이 주식 운세를 알려줍니다..."
 
 # 페이지 설정
 st.set_page_config(
@@ -11,72 +20,81 @@ st.set_page_config(
     layout="wide"
 )
 
-# 👽 우주 대혼돈 CSS 스타일 (눈뽕 주의!) 👽
-st.markdown("""
+# 👽 우주 대혼돈 CSS 스타일 (세션 상태에 따라 배경이 바뀜!)
+bg_animation = "hyperRainbow 3s linear infinite"
+if st.session_state.berserk_mode:
+    # 폭주 모드일 때는 극도로 어지러운 싸이키 조명 가동! 🚨
+    bg_animation = "berserkFlash 0.1s steps(2) infinite"
+
+st.markdown(f"""
 <style>
-    /* 1. 광속으로 회전하는 무지개 배경 */
-    .stApp {
+    /* 1. 광속으로 회전하는 무지개 배경 또는 폭주 싸이키 배경 */
+    .stApp {{
         background: linear-gradient(45deg, #ff00ff, #00ffff, #ffff00, #ff0000, #00ff00, #0000ff, #ff00ff);
         background-size: 600% 600%;
-        animation: hyperRainbow 3s linear infinite !important; /* 3초만에 한바퀴 도는 광기의 속도 */
-    }
-    @keyframes hyperRainbow {
-        0% {background-position: 0% 50%;}
-        50% {background-position: 100% 50%;}
-        100% {background-position: 0% 50%;}
-    }
+        animation: {bg_animation} !important;
+    }}
+    @keyframes hyperRainbow {{
+        0% {{background-position: 0% 50%;}}
+        50% {{background-position: 100% 50%;}}
+        100% {{background-position: 0% 50%;}}
+    }}
+    @keyframes berserkFlash {{
+        0% {{ filter: hue-rotate(0deg) invert(0); }}
+        100% {{ filter: hue-rotate(360deg) invert(1); }}
+    }}
 
-    /* 2. 외계인 궁서체 박스 (형광 초록 글씨 + 핫핑크 테두리) */
-    .content-box {
-        background-color: #000000 !important; /* 칠흑 같은 우주 블랙 */
-        border: 10px ridge #ff00ff !important; /* 킹받는 핫핑크 입체 테두리 */
-        border-radius: 0px !important; /* 둥근 모서리 금지! 각진 세기말 감성 */
+    /* 2. 외계인 궁서체 박스 */
+    .content-box {{
+        background-color: #000000 !important;
+        border: 10px ridge #ff00ff !important;
+        border-radius: 0px !important;
         padding: 25px;
         margin-bottom: 25px;
-        box-shadow: 0px 0px 30px #00ff00; /* 형광 초록 오오라 */
-    }
+        box-shadow: 0px 0px 30px #00ff00;
+    }}
 
     /* 3. 진지한 궁서체 텍스트 */
-    h1, h2, h3, p, span, label, .stMarkdown {
+    h1, h2, h3, p, span, label, .stMarkdown {{
         font-family: 'Gungsuh', 'GungsuhChe', '궁서', 'Comic Sans MS', cursive !important;
-        text-shadow: 2px 2px 0px #ff0000, -2px -2px 0px #0000ff; /* 글자에 3D 적청 입체 효과 */
-    }
+        text-shadow: 2px 2px 0px #ff0000, -2px -2px 0px #0000ff;
+    }}
 
     /* 4. 빙글빙글 도는 UFO */
-    .spinning-ufo {
+    .spinning-ufo {{
         display: inline-block;
         animation: spin 0.5s linear infinite;
         font-size: 50px;
-    }
-    @keyframes spin {
-        100% { transform: rotate(-360deg); }
-    }
+    }}
+    @keyframes spin {{
+        100% {{ transform: rotate(-360deg); }}
+    }}
 
-    /* 5. 깜빡이는 텍스트 (Blink) */
-    .blink-text {
+    /* 5. 깜빡이는 텍스트 */
+    .blink-text {{
         animation: blink 0.3s step-end infinite;
         color: #ffff00;
         font-weight: bold;
         font-size: 24px;
         text-align: center;
-    }
-    @keyframes blink {
-        50% { opacity: 0; }
-    }
+    }}
+    @keyframes blink {{
+        50% {{ opacity: 0; }}
+    }}
 
-    /* 6. 사이드바도 눈뽕 테러 */
-    [data-testid="stSidebar"] {
-        background-color: #00ff00 !important; /* 형광 연두색 사이드바 */
+    /* 6. 사이드바 스타일 */
+    [data-testid="stSidebar"] {{
+        background-color: #00ff00 !important;
         border-right: 10px dashed #ff0000;
-    }
-    [data-testid="stSidebar"] * {
+    }}
+    [data-testid="stSidebar"] * {{
         color: #000000 !important;
         font-weight: bold !important;
-    }
+    }}
 </style>
 """, unsafe_allow_html=True)
 
-# 🛸 흘러가는 전광판 (Marquee) - 보노보노 PPT의 정수!
+# 🛸 전광판
 st.markdown("""
 <marquee direction="left" scrollamount="20" style="background-color: #ffff00; color: #ff0000; font-size: 30px; font-weight: bold; font-family: '궁서';">
     🚨 [비상] 외계인 주식 시장 대침공!!! 인간들아 너희들의 원화를 모두 주식에 부어라!!! 왹왹왹왹!!! 👽🛸👾🚀☄️
@@ -96,7 +114,68 @@ st.markdown("""
 
 st.markdown('<p class="blink-text">⚠️ 경고: 이 웹사이트는 지구인의 미적 기준을 파괴합니다. ⚠️</p>', unsafe_allow_html=True)
 
-# 종목 설정 (지구인들의 우량주)
+# ==========================================
+# 🧪 아주 쓸데없는 왹져 실험실 (상단 배치!)
+# ==========================================
+st.markdown('<div class="content-box">', unsafe_allow_html=True)
+st.markdown("<h2 style='color:#00ffff; text-align:center;'>🧪 안드로메다 비밀 실험실 (절대 누르지 마시오)</h2>", unsafe_allow_html=True)
+
+col1, col2, col3 = st.columns(3)
+
+with col1:
+    # 1) 폭주 모드 버튼
+    if st.button("🚨 왹져 폭주 모드 가동!!! 🚨", use_container_width=True):
+        st.session_state.berserk_mode = not st.session_state.berserk_mode
+        st.rerun() # 화면 즉시 새로고침
+
+with col2:
+    # 2) 합법 주가 조작 버튼
+    if st.button("💸 합법 주가 조작 (초급등) 💸", use_container_width=True):
+        st.session_state.stock_pump = not st.session_state.stock_pump
+        if st.session_state.stock_pump:
+            st.toast("🔮 왹왹! 지구인 주가 무한 동력 가동!")
+        else:
+            st.toast("💤 주가 조작 장치 전원 꺼짐...")
+        st.rerun()
+
+with col3:
+    # 3) 지구 파괴 미사일 버튼
+    if st.button("☄️ 지구 파괴 미사일 발사 ☄️", use_container_width=True):
+        st.warning("🚀 지구 파괴 미사일 충전 시작... 피하십시오!")
+        progress_bar = st.progress(0)
+        for percent_complete in range(100):
+            time.sleep(0.02)
+            progress_bar.progress(percent_complete + 1)
+        
+        # 기괴한 실패 사유 출력
+        fail_reasons = [
+            "❌ 에러: 미사일 발사 버튼에 우주 먼지가 끼어 취소되었습니다.",
+            "❌ 에러: 테슬라(TSLA) 주가가 너무 떨어져 우주선 연료비가 부족합니다.",
+            "❌ 에러: 지구인들이 보낸 '김치' 냄새에 격추당했습니다.",
+            "❌ 에러: 외계인 사령관이 주식 창 보느라 발사 스위치를 못 눌렀습니다."
+        ]
+        st.error(random.choice(fail_reasons))
+
+# 4) 우주 점쟁이 (하단 한줄 배치)
+st.markdown("---")
+st.markdown("### 🔮 우주 주식 점성술")
+if st.button("🪐 오늘의 주식 운세 보기 🪐"):
+    fortunes = [
+        "👽 오늘 삼성전자를 사면 외계인 우주선 승차권을 얻게 됩니다.",
+        "👽 오늘은 테슬라 차트가 UFO 모양을 그릴 것입니다. 매수각입니다.",
+        "👽 주식 창을 끄고 안드로메다 방향으로 절을 3번 하십시오. 평화가 올 것입니다.",
+        "👽 왹왹! 오늘 당신의 계좌에 은하계 초신성이 폭발해 0원이 될 수도 있습니다.",
+        "👽 우주의 기운이 당신의 매도를 막고 있습니다. 존버하십시오."
+    ]
+    st.session_state.fortune_msg = random.choice(fortunes)
+
+st.info(st.session_state.fortune_msg)
+st.markdown('</div>', unsafe_allow_html=True)
+
+
+# ==========================================
+# 📊 주식 데이터 파트
+# ==========================================
 korea_stocks = {
     "삼성전자": "005930.KS",
     "SK하이닉스": "000660.KS",
@@ -113,7 +192,7 @@ us_stocks = {
     "구글(Google)": "GOOGL",
 }
 
-# 사이드바 (눈을 찌르는 디자인)
+# 사이드바
 st.sidebar.markdown("# 👾 왹져의 지령실 👾")
 market = st.sidebar.radio("🛸 지구의 영토를 고르라!", ["🇰🇷 김치 주식", "🇺🇸 버거 주식"])
 
@@ -127,12 +206,10 @@ selected_names = st.sidebar.multiselect(
 
 period = st.sidebar.selectbox("📅 지구 시간 기준 기간", ["1mo", "3mo", "6mo", "1y"])
 
-# 왹져 납치 버튼 (이스터에그)
 st.sidebar.markdown("---")
 if st.sidebar.button("👽 우주선 납치 버튼 (절대 누르지 마시오)"):
     st.balloons()
     st.toast("🛸 왹왹왹! 지구인을 납치했다!!!")
-    st.toast("☄️ 계좌 잔고가 안드로메다로 날아갑니다!")
 
 # 메인 로직
 if not selected_names:
@@ -144,43 +221,46 @@ else:
         price_data = {}
         for name, ticker in selected_tickers.items():
             try:
-                # 데이터 수집 (안정성을 위해 multi_level_index=False)
                 df = yf.download(ticker, period=period, progress=False, multi_level_index=False)
                 if not df.empty:
                     price_data[name] = df
             except Exception as e:
-                st.error(f"🛸 {name} 통신 두절! 우주 먼지가 되었나? : {e}")
+                st.error(f"🛸 {name} 통신 두절! : {e}")
 
     if price_data:
-        # 1. 미친 네온 차트 (검정 배경 + 형광색 라인) 📊
+        # 1. 미친 네온 차트
         st.markdown('<div class="content-box">', unsafe_allow_html=True)
         st.markdown("<h2 style='color:#00ff00; text-align:center;'>📈 뇌정지 수익률 배틀그라운드</h2>", unsafe_allow_html=True)
 
         return_fig = go.Figure()
         return_summary = []
         
-        # 왹져스러운 네온 색상 풀
         neon_colors = ["#ff00ff", "#00ffff", "#ffff00", "#ff0000", "#00ff00", "#ffffff"]
 
         for idx, (name, df) in enumerate(price_data.items()):
             close = df['Close']
             normalized = (close / close.iloc[0] - 1) * 100
             
-            # 피할 수 없는 무지개색 선들!
+            # 💸 주가 조작 모드가 켜져 있다면? 값을 안드로메다급으로 폭증시킴!
+            if st.session_state.stock_pump:
+                normalized = normalized * 99999 + random.randint(10000, 50000)
+
             line_color = neon_colors[idx % len(neon_colors)]
             
             return_fig.add_trace(go.Scatter(
                 x=df.index,
                 y=normalized,
-                mode='lines+markers', # 마커까지 붙여서 극도로 산만하게 만들기
+                mode='lines+markers',
                 name=f"🛸 {name}",
                 line=dict(width=4, color=line_color),
-                marker=dict(size=8, symbol='star') # 별 모양 마커!
+                marker=dict(size=8, symbol='star')
             ))
             final_return = float(normalized.iloc[-1])
-            return_summary.append({"종목": name, "수익률(%)": f"{round(final_return, 2)}% 왹!"})
+            
+            # 주가 조작 여부에 따른 단위 변화
+            unit = "왹(WOEK)" if st.session_state.stock_pump else "% 왹!"
+            return_summary.append({"종목": name, "수익률": f"{round(final_return, 2):,}{unit}"})
 
-        # 왹져 감성의 블랙홀 플롯 배경 설정
         return_fig.update_layout(
             plot_bgcolor='black',
             paper_bgcolor='black',
@@ -198,22 +278,32 @@ else:
         st.dataframe(summary_df, use_container_width=True, hide_index=True)
         st.markdown('</div>', unsafe_allow_html=True)
 
-        # 2. 광기의 캔들 차트 🕯️
+        # 2. 광기의 캔들 차트
         st.markdown('<div class="content-box">', unsafe_allow_html=True)
         st.markdown("<h2 style='color:#ffff00; text-align:center;'>🕯️ 우주 에너지 파동 (캔들차트)</h2>", unsafe_allow_html=True)
 
         chart_name = st.selectbox("🛸 스캔할 지구 기업을 선택하라:", list(price_data.keys()))
         chart_df = price_data[chart_name]
 
-        # 형광 핑크(상승)와 형광 파랑(하락)의 지옥의 조합
+        # 만약 주가 조작 모드라면 캔들 차트 가격도 인플레이션 시킴
+        open_val = chart_df['Open']
+        high_val = chart_df['High']
+        low_val = chart_df['Low']
+        close_val = chart_df['Close']
+        if st.session_state.stock_pump:
+            open_val *= 12345
+            high_val *= 12345
+            low_val *= 12345
+            close_val *= 12345
+
         candle_fig = go.Figure(data=[go.Candlestick(
             x=chart_df.index,
-            open=chart_df['Open'],
-            high=chart_df['High'],
-            low=chart_df['Low'],
-            close=chart_df['Close'],
-            increasing_line_color='#ff00ff', # 상승은 핫핑크!
-            decreasing_line_color='#00ffff'  # 하락은 형광 하늘색!
+            open=open_val,
+            high=high_val,
+            low=low_val,
+            close=close_val,
+            increasing_line_color='#ff00ff',
+            decreasing_line_color='#00ffff'
         )])
         
         candle_fig.update_layout(
@@ -230,7 +320,7 @@ else:
     else:
         st.error("👽 지구 인터넷이 너무 느리다!!! 으아아아아악!!! 🛸")
 
-# 왹져 전용 푸터
+# 푸터
 st.markdown("""
 <div style="background-color: #000000; border: 5px dashed #00ff00; padding: 20px; text-align: center; margin-top: 50px;">
     <p style="color: #ff00ff; font-size: 20px;">🛸 본 앱은 당곡고등학교 왹져 연구소에서 개발되었습니다. 🛸</p>
