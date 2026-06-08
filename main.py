@@ -2,7 +2,6 @@ import streamlit as st
 import yfinance as yf
 import pandas as pd
 import plotly.graph_objects as go
-from plotly.subplots import make_subplots
 from datetime import datetime, timedelta
 
 # 페이지 설정
@@ -15,7 +14,6 @@ st.set_page_config(
 # 화려한 무지개 CSS 스타일 ✨
 st.markdown("""
 <style>
-    /* 배경 무지개 그라데이션 */
     .stApp {
         background: linear-gradient(-45deg, #ff0000, #ff7f00, #ffff00, #00ff00, #0000ff, #4b0082, #9400d3);
         background-size: 400% 400%;
@@ -26,7 +24,6 @@ st.markdown("""
         50% {background-position: 100% 50%;}
         100% {background-position: 0% 50%;}
     }
-    /* 반짝이는 제목 */
     .sparkle-title {
         font-size: 50px;
         font-weight: bold;
@@ -42,7 +39,6 @@ st.markdown("""
         50% {transform: scale(1.05);}
         100% {transform: scale(1);}
     }
-    /* 컨텐츠 박스 반투명 */
     .content-box {
         background: rgba(255, 255, 255, 0.85);
         border-radius: 20px;
@@ -57,7 +53,7 @@ st.markdown('<p class="sparkle-title">🌈✨ 무지개 반짝반짝 주식 분�
 st.markdown('<h3 style="text-align:center; color:white;">🚀 으아아아악! 한국 & 미국 주식 한눈에 비교 ㅋㅋㅋ 🚀</h3>', unsafe_allow_html=True)
 st.markdown("---")
 
-# 주요 종목 딕셔너리 (티커: 이름)
+# 주요 종목 딕셔너리 (이름: 티커)
 korea_stocks = {
     "삼성전자": "005930.KS",
     "SK하이닉스": "000660.KS",
@@ -92,7 +88,6 @@ selected_names = st.sidebar.multiselect(
     default=list(stock_dict.keys())[:3]
 )
 
-# 기간 선택
 period_option = st.sidebar.selectbox(
     "📅 분석 기간",
     ["1개월", "3개월", "6개월", "1년", "2년"]
@@ -109,12 +104,12 @@ if not selected_names:
 else:
     selected_tickers = {name: stock_dict[name] for name in selected_names}
 
-    # 데이터 불러오기
     with st.spinner("🚀 외계 행성에서 데이터 가져오는 중... 으아아악! 🛸"):
         price_data = {}
         for name, ticker in selected_tickers.items():
             try:
-                df = yf.download(ticker, period=period, progress=False)
+                # ✅ multi_level_index=False 추가 (컬럼 구조를 단순하게!)
+                df = yf.download(ticker, period=period, progress=False, multi_level_index=False)
                 if not df.empty:
                     price_data[name] = df
             except Exception as e:
@@ -130,16 +125,14 @@ else:
 
         for name, df in price_data.items():
             close = df['Close']
-            # 정규화: 시작점을 0%로
             normalized = (close / close.iloc[0] - 1) * 100
             return_fig.add_trace(go.Scatter(
                 x=df.index,
-                y=normalized.values.flatten(),
+                y=normalized,
                 mode='lines',
                 name=name,
                 line=dict(width=3)
             ))
-            # 최종 수익률 저장
             final_return = float(normalized.iloc[-1])
             return_summary.append({"종목": name, "수익률(%)": round(final_return, 2)})
 
@@ -153,7 +146,6 @@ else:
         )
         st.plotly_chart(return_fig, use_container_width=True)
 
-        # 수익률 표
         summary_df = pd.DataFrame(return_summary).sort_values("수익률(%)", ascending=False)
         st.markdown("#### 🏆 수익률 순위표")
         st.dataframe(summary_df, use_container_width=True, hide_index=True)
@@ -170,10 +162,10 @@ else:
 
         candle_fig = go.Figure(data=[go.Candlestick(
             x=chart_df.index,
-            open=chart_df['Open'].values.flatten(),
-            high=chart_df['High'].values.flatten(),
-            low=chart_df['Low'].values.flatten(),
-            close=chart_df['Close'].values.flatten(),
+            open=chart_df['Open'],
+            high=chart_df['High'],
+            low=chart_df['Low'],
+            close=chart_df['Close'],
             increasing_line_color='red',
             decreasing_line_color='blue'
         )])
@@ -188,7 +180,7 @@ else:
         st.plotly_chart(candle_fig, use_container_width=True)
         st.markdown('</div>', unsafe_allow_html=True)
 
-        st.balloons()  # 풍선 효과 🎈
+        st.balloons()
     else:
         st.error("👽 데이터를 가져오지 못했어요. 으아아악! 다시 시도해주세요 🛸")
 
