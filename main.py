@@ -11,203 +11,235 @@ if 'berserk_mode' not in st.session_state:
 if 'stock_pump' not in st.session_state:
     st.session_state.stock_pump = False
 if 'fortune_msg' not in st.session_state:
-    st.session_state.fortune_msg = "🔮 위의 구슬을 누르면 외계 정령이 주식 운세를 알려줍니다..."
+    st.session_state.fortune_msg = "🔮 정령의 전언: 돈은 있다가도 없고 없다가도 없는 것, 왹왹!"
 
 # 페이지 설정
 st.set_page_config(
-    page_title="👽 왹-져 주식 침공 👽",
-    page_icon="🛸",
+    page_title="👽 안드로메다 멸망 주식 👽",
+    page_icon="👾",
     layout="wide"
 )
 
-# 👽 우주 대혼돈 + 날아다니는 애니메이션 CSS 스타일 👽
-bg_animation = "hyperRainbow 3s linear infinite"
+# 2. 파이썬으로 50개의 무작위 날아다니는 물체 동적 생성 🌪️
+# (이렇게 파이썬 루프를 활용해 무작위 CSS 코드를 찍어내는 것은 동적 퍼블리싱의 꿀팁입니다!)
+flying_html = ""
+emojis = ["🛸", "👽", "🚀", "🌈", "💸", "👾", "✨", "💥", "🔥", "🦄", "☄️", "🦖", "🤪"]
+for i in range(50):
+    emo = random.choice(emojis)
+    duration = random.randint(3, 12)  # 날아가는 속도 제각각
+    delay = random.uniform(0, 5)     # 출발 시간 제각각
+    scale = random.uniform(0.5, 2.5) # 크기 제각각
+    # 미리 정의된 미친 애니메이션 중 무작위 배정
+    anim_name = random.choice(["zigZagFly", "spinDrop", "rocketUp", "pinball", "crazyOrbit"])
+    
+    flying_html += f"""
+    <div class="flying-object" style="
+        animation: {anim_name} {duration}s linear infinite;
+        animation-delay: -{delay}s;
+        transform: scale({scale});
+        font-size: 35px;
+    ">{emo}</div>
+    """
+
+# 3. 우주 최강 지옥의 CSS 스타일시트 💥
+bg_animation = "hyperRainbow 2s linear infinite"
+screen_shake = ""
+
+# 폭주 모드일 때만 전체 화면을 지진 모드로!
 if st.session_state.berserk_mode:
-    bg_animation = "berserkFlash 0.1s steps(2) infinite"
+    bg_animation = "berserkFlash 0.05s steps(2) infinite"
+    screen_shake = "animation: earthquake 0.1s linear infinite;"
 
 st.markdown(f"""
 <style>
-    /* [기본 무지개 배경] */
+    /* 🛸 마우스 커서 외계인으로 교체! */
+    html, body, [data-testid="stAppViewContainer"] {{
+        cursor: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='40' height='40' style='font-size:30px'><text y='30'>🛸</text></svg>"), auto !important;
+    }}
+
+    /* 🫨 폭주모드 시 전체 웹사이트 흔들기 */
     .stApp {{
         background: linear-gradient(45deg, #ff00ff, #00ffff, #ffff00, #ff0000, #00ff00, #0000ff, #ff00ff);
         background-size: 600% 600%;
         animation: {bg_animation} !important;
+        {screen_shake}
     }}
+
+    /* ----------------------------------
+       🔥 지옥의 무작위 3D 궤적 애니메이션
+       ---------------------------------- */
+    .flying-object {{
+        position: fixed;
+        pointer-events: none;
+        z-index: 99999;
+    }}
+    @keyframes zigZagFly {{
+        0% {{ left: -10%; top: 10%; transform: rotate(0deg); }}
+        33% {{ left: 50%; top: 90%; transform: rotate(180deg); }}
+        66% {{ left: 80%; top: 30%; transform: rotate(360deg); }}
+        100% {{ left: 110%; top: 80%; transform: rotate(720deg); }}
+    }}
+    @keyframes spinDrop {{
+        0% {{ right: -10%; top: 90%; transform: scale(1) rotate(0deg); }}
+        50% {{ right: 50%; top: 10%; transform: scale(3) rotate(-360deg); }}
+        100% {{ right: 110%; top: 90%; transform: scale(0.5) rotate(-720deg); }}
+    }}
+    @keyframes rocketUp {{
+        0% {{ left: 10%; top: 110%; }}
+        50% {{ left: 90%; top: -10%; }}
+        51% {{ left: 90%; top: 110%; }}
+        100% {{ left: 10%; top: -10%; }}
+    }}
+    @keyframes pinball {{
+        0% {{ left: 5%; top: 5%; }}
+        25% {{ left: 95%; top: 5%; }}
+        50% {{ left: 95%; top: 95%; }}
+        75% {{ left: 5%; top: 95%; }}
+        100% {{ left: 5%; top: 5%; }}
+    }}
+    @keyframes crazyOrbit {{
+        0% {{ left: 50%; top: 50%; transform: rotate(0deg) translate(-200px) rotate(0deg); }}
+        100% {{ left: 50%; top: 50%; transform: rotate(360deg) translate(-200px) rotate(-360deg); }}
+    }}
+
+    /* 🫨 지진 발생 장치 */
+    @keyframes earthquake {{
+        0% {{ transform: translate(3px, 3px) rotate(0deg); }}
+        20% {{ transform: translate(-3px, -3px) rotate(-1deg); }}
+        40% {{ transform: translate(-5px, 0px) rotate(1deg); }}
+        60% {{ transform: translate(0px, 4px) rotate(0deg); }}
+        80% {{ transform: translate(3px, -2px) rotate(2deg); }}
+        100% {{ transform: translate(1px, -3px) rotate(-1deg); }}
+    }}
+
     @keyframes hyperRainbow {{
         0% {{background-position: 0% 50%;}}
         50% {{background-position: 100% 50%;}}
         100% {{background-position: 0% 50%;}}
     }}
     @keyframes berserkFlash {{
-        0% {{ filter: hue-rotate(0deg) invert(0); }}
-        100% {{ filter: hue-rotate(360deg) invert(1); }}
+        0% {{ filter: hue-rotate(0deg) invert(0) brightness(1.5); }}
+        100% {{ filter: hue-rotate(180deg) invert(1) brightness(2); }}
     }}
 
-    /* ----------------------------------------------------
-       🚀 정신없이 날아다니는 외계인 & 효과 CSS 애니메이션
-       ---------------------------------------------------- */
-    .flying-object {{
-        position: fixed;
-        pointer-events: none; /* 💡 중요: 날아다니는 아이콘이 마우스 클릭을 막지 않도록 설정! */
-        z-index: 99999;       /* 화면 가장 위에 표시 */
-        font-size: 50px;
+    /* 💥 킹받는 버튼 호버 효과 추가 */
+    button {{
+        transition: all 0.05s ease-in-out !important;
+    }}
+    button:hover {{
+        transform: scale(1.4) rotate(15deg) !important;
+        background-color: #ff00ff !important;
+        color: #00ffff !important;
+        border: 5px dashed #ffff00 !important;
+        box-shadow: 0px 0px 30px #ff0000 !important;
     }}
 
-    /* 비행 경로 1 (왼쪽 아래 -> 오른쪽 위로 지그재그) */
-    @keyframes zigZagFly {{
-        0% {{ left: -10%; top: 80%; transform: rotate(0deg) scale(1); }}
-        25% {{ left: 30%; top: 20%; transform: rotate(180deg) scale(1.5); }}
-        50% {{ left: 60%; top: 70%; transform: rotate(360deg) scale(0.8); }}
-        75% {{ left: 80%; top: 10%; transform: rotate(540deg) scale(2); }}
-        100% {{ left: 110%; top: 50%; transform: rotate(720deg) scale(1); }}
-    }}
-
-    /* 비행 경로 2 (오른쪽 위 -> 왼쪽 아래로 회전 낙하) */
-    @keyframes spinDrop {{
-        0% {{ right: -10%; top: 10%; transform: rotate(0deg); }}
-        50% {{ right: 50%; top: 80%; transform: rotate(-720deg) scale(2); }}
-        100% {{ right: 110%; top: 90%; transform: rotate(-1440deg); }}
-    }}
-
-    /* 비행 경로 3 (아래에서 위로 수직 솟구치기) */
-    @keyframes rocketUp {{
-        0% {{ left: 45%; top: 110%; transform: scale(1) rotate(0deg); }}
-        50% {{ left: 55%; top: 50%; transform: scale(3) rotate(20deg); }}
-        100% {{ left: 40%; top: -20%; transform: scale(1) rotate(-20deg); }}
-    }}
-
-    /* 비행 경로 4 (미친듯이 화면을 튕겨다니는 핀볼 효과) */
-    @keyframes pinball {{
-        0% {{ left: 10%; top: 10%; }}
-        20% {{ left: 90%; top: 30%; transform: rotate(90deg); }}
-        40% {{ left: 20%; top: 80%; transform: rotate(180deg); }}
-        60% {{ left: 80%; top: 50%; transform: rotate(270deg); }}
-        80% {{ left: 40%; top: 20%; transform: rotate(360deg); }}
-        100% {{ left: 10%; top: 10%; }}
-    }}
-
-    /* [컨텐츠 박스 및 폰트] */
+    /* [컨텐츠 박스 & 글꼴] */
     .content-box {{
         background-color: #000000 !important;
-        border: 10px ridge #ff00ff !important;
+        border: 15px double #00ffff !important;
         border-radius: 0px !important;
         padding: 25px;
         margin-bottom: 25px;
-        box-shadow: 0px 0px 30px #00ff00;
+        box-shadow: 0px 0px 50px #ff00ff;
     }}
-    h1, h2, h3, p, span, label, .stMarkdown {{
+    h1, h2, h3, p, span, label, .stMarkdown, .stButton {{
         font-family: 'Gungsuh', 'GungsuhChe', '궁서', 'Comic Sans MS', cursive !important;
-        text-shadow: 2px 2px 0px #ff0000, -2px -2px 0px #0000ff;
-    }}
-    .spinning-ufo {{
-        display: inline-block;
-        animation: spin 0.5s linear infinite;
-        font-size: 50px;
-    }}
-    @keyframes spin {{
-        100% {{ transform: rotate(-360deg); }}
+        text-shadow: 3px 3px 0px #ff0000, -3px -3px 0px #0000ff;
     }}
     .blink-text {{
-        animation: blink 0.3s step-end infinite;
+        animation: blink 0.15s step-end infinite;
         color: #ffff00;
         font-weight: bold;
-        font-size: 24px;
+        font-size: 35px;
         text-align: center;
     }}
     @keyframes blink {{
         50% {{ opacity: 0; }}
     }}
     [data-testid="stSidebar"] {{
-        background-color: #00ff00 !important;
-        border-right: 10px dashed #ff0000;
+        background-color: #ffff00 !important;
+        border-right: 15px double #ff00ff;
     }}
     [data-testid="stSidebar"] * {{
-        color: #000000 !important;
-        font-weight: bold !important;
+        color: #ff0000 !important;
+        font-weight: 900 !important;
+        font-size: 20px !important;
     }}
 </style>
 """, unsafe_allow_html=True)
 
-# 🛸 화면 위를 쉴 새 없이 날아다니는 유령 비행체들 방출!
-st.markdown("""
-<div class="flying-object" style="animation: zigZagFly 6s linear infinite;">🛸</div>
-<div class="flying-object" style="animation: spinDrop 8s ease-in-out infinite;">👽</div>
-<div class="flying-object" style="animation: rocketUp 5s ease infinite;">🚀</div>
-<div class="flying-object" style="animation: pinball 12s linear infinite;">🌈</div>
-<div class="flying-object" style="animation: zigZagFly 10s linear infinite; animation-delay: 2s;">💸</div>
-<div class="flying-object" style="animation: spinDrop 7s ease infinite; animation-delay: 3s;">👾</div>
-<div class="flying-object" style="animation: pinball 9s ease-in-out infinite; animation-delay: 1s;">✨</div>
-<div class="flying-object" style="animation: rocketUp 4s linear infinite; animation-delay: 2.5s;">💥</div>
-""", unsafe_allow_html=True)
+# 🛸 50마리의 외계인 대기갑부대 투입!
+st.markdown(flying_html, unsafe_allow_html=True)
 
-
-# 🛸 전광판
+# 🛸 전광판 2개 동시 발사 (하나는 왼쪽, 하나는 오른쪽으로 교차 돌진!)
 st.markdown("""
-<marquee direction="left" scrollamount="20" style="background-color: #ffff00; color: #ff0000; font-size: 30px; font-weight: bold; font-family: '궁서';">
-    🚨 [비상] 외계인 주식 시장 대침공!!! 인간들아 너희들의 원화를 모두 주식에 부어라!!! 왹왹왹왹!!! 👽🛸👾🚀☄️
+<marquee direction="left" scrollamount="30" style="background-color: #ff00ff; color: #00ffff; font-size: 35px; font-weight: bold; font-family: '궁서';">
+    👾 왹왹왹왹!! 지구인들아!! 무릎을 꿇어라!!! 안드로메다 연합 우주 군단 침략 개시!!! 👾
+</marquee>
+<marquee direction="right" scrollamount="25" style="background-color: #00ff00; color: #ff0000; font-size: 30px; font-weight: bold; font-family: '궁서';">
+    🛸 [속보] 주가 폭등에 우주 연합군 전투기 연료비 조달 성공!!! 으아아아악!!! 🛸
 </marquee>
 """, unsafe_allow_html=True)
 
 # 메인 타이틀
 st.markdown("""
-<div style="text-align: center; margin: 30px 0;">
-    <span class="spinning-ufo">🛸</span>
-    <span style="font-size: 60px; color: #00ff00; font-weight: bold; text-shadow: 4px 4px 0px #ff00ff, -4px -4px 0px #00ffff;">
-        왹져 주식 대전쟁 3000
+<div style="text-align: center; margin: 30px 0; transform: skew(-15deg) rotate(-2deg);">
+    <span style="font-size: 80px; color: #ffff00; font-weight: bold; text-shadow: 6px 6px 0px #ff0000, -6px -6px 0px #0000ff;">
+        🪐 왹져 은하 연합 금융 침공 🪐
     </span>
-    <span class="spinning-ufo">🛸</span>
 </div>
 """, unsafe_allow_html=True)
 
-st.markdown('<p class="blink-text">⚠️ 경고: 이 웹사이트는 지구인의 미적 기준을 파괴합니다. ⚠️</p>', unsafe_allow_html=True)
+st.markdown('<p class="blink-text">☠️ 뇌 세포가 녹아내리는 중입니다 ☠️</p>', unsafe_allow_html=True)
 
 # ==========================================
-# 🧪 비밀 실험실 (동작 버튼들)
+# 🧪 비밀 실험실 (폭주 컨트롤러)
 # ==========================================
 st.markdown('<div class="content-box">', unsafe_allow_html=True)
-st.markdown("<h2 style='color:#00ffff; text-align:center;'>🧪 안드로메다 비밀 실험실 (절대 누르지 마시오)</h2>", unsafe_allow_html=True)
+st.markdown("<h2 style='color:#00ffff; text-align:center;'>🧪 외계인 비밀 과학 기지 (호버링 금지!)</h2>", unsafe_allow_html=True)
 
 col1, col2, col3 = st.columns(3)
 
 with col1:
-    if st.button("🚨 왹져 폭주 모드 가동!!! 🚨", use_container_width=True):
+    if st.button("🚨 은하계 자폭 스위치 (폭주 모드) 🚨", use_container_width=True):
         st.session_state.berserk_mode = not st.session_state.berserk_mode
         st.rerun()
 
 with col2:
-    if st.button("💸 합법 주가 조작 (초급등) 💸", use_container_width=True):
+    if st.button("💸 왹져 중앙은행 화폐 대발행 💸", use_container_width=True):
         st.session_state.stock_pump = not st.session_state.stock_pump
         if st.session_state.stock_pump:
-            st.toast("🔮 왹왹! 지구인 주가 무한 동력 가동!")
+            st.toast("🤑 삐리리릭... 위폐 인쇄기 풀가동!!!")
         else:
-            st.toast("💤 주가 조작 장치 전원 꺼짐...")
+            st.toast("💤 인쇄기 고장남...")
         st.rerun()
 
 with col3:
-    if st.button("☄️ 지구 파괴 미사일 발사 ☄️", use_container_width=True):
-        st.warning("🚀 지구 파괴 미사일 충전 시작... 피하십시오!")
+    if st.button("☄️ 멸망의 핵미사일 버튼 ☄️", use_container_width=True):
+        st.warning("🚀 목표 좌표: 당곡고등학교 앞마당... 핵분열 충전 중!")
         progress_bar = st.progress(0)
         for percent_complete in range(100):
-            time.sleep(0.02)
+            time.sleep(0.01)
             progress_bar.progress(percent_complete + 1)
         
         fail_reasons = [
-            "❌ 에러: 미사일 발사 버튼에 우주 먼지가 끼어 취소되었습니다.",
-            "❌ 에러: 테슬라(TSLA) 주가가 너무 떨어져 우주선 연료비가 부족합니다.",
-            "❌ 에러: 지구인들이 보낸 '김치' 냄새에 격추당했습니다.",
-            "❌ 에러: 외계인 사령관이 주식 창 보느라 발사 스위치를 못 눌렀습니다."
+            "❌ 폭발 실패: 외계 우주선 승무원들이 단체로 연차를 썼습니다.",
+            "❌ 폭발 실패: 코스피(KOSPI)가 너무 하락하여 분통이 터져 미사일이 꺼졌습니다.",
+            "❌ 폭발 실패: 지구인들이 급하게 뿌린 불닭볶음면 스프에 센서가 녹았습니다.",
+            "❌ 폭발 실패: 주식 물려가지고 기분이 안 좋아서 왹져 대장이 취소함."
         ]
         st.error(random.choice(fail_reasons))
 
 st.markdown("---")
-st.markdown("### 🔮 우주 주식 점성술")
-if st.button("🪐 오늘의 주식 운세 보기 🪐"):
+st.markdown("### 🔮 우주 점성술 무당방")
+if st.button("🪐 은하 점성 정령 소환 🪐"):
     fortunes = [
-        "👽 오늘 삼성전자를 사면 외계인 우주선 승차권을 얻게 됩니다.",
-        "👽 오늘은 테슬라 차트가 UFO 모양을 그릴 것입니다. 매수각입니다.",
-        "👽 주식 창을 끄고 안드로메다 방향으로 절을 3번 하십시오. 평화가 올 것입니다.",
-        "👽 왹왹! 오늘 당신의 계좌에 은하계 초신성이 폭발해 0원이 될 수도 있습니다.",
-        "👽 우주의 기운이 당신의 매도를 막고 있습니다. 존버하십시오."
+        "👽 오늘 삼성전자를 풀매수하지 않으면 은하수 감옥에 갇힐 것입니다.",
+        "👽 엔비디아(NVDA) 주가는 사실 외계인의 음모에 의해 우상향하고 있습니다.",
+        "👽 당장 주식창을 덮고 밤하늘의 카시오페아 자리를 바라보며 우십시오.",
+        "👽 왹왹!! 우주의 악령이 당신의 예수금을 주시하고 있습니다!! 도망쳐!!",
+        "👽 존버하십시오. 우주 법률 제42조에 의해 존버는 무조건 승리합니다."
     ]
     st.session_state.fortune_msg = random.choice(fortunes)
 
@@ -216,7 +248,7 @@ st.markdown('</div>', unsafe_allow_html=True)
 
 
 # ==========================================
-# 📊 주식 데이터 분석 영역
+# 📊 주식 시장 데이터 수집 영역
 # ==========================================
 korea_stocks = {
     "삼성전자": "005930.KS",
@@ -234,7 +266,7 @@ us_stocks = {
     "구글(Google)": "GOOGL",
 }
 
-# 사이드바
+# 사이드바 (극도로 쨍한 테마)
 st.sidebar.markdown("# 👾 왹져의 지령실 👾")
 market = st.sidebar.radio("🛸 지구의 영토를 고르라!", ["🇰🇷 김치 주식", "🇺🇸 버거 주식"])
 
@@ -249,11 +281,11 @@ selected_names = st.sidebar.multiselect(
 period = st.sidebar.selectbox("📅 지구 시간 기준 기간", ["1mo", "3mo", "6mo", "1y"])
 
 st.sidebar.markdown("---")
-if st.sidebar.button("👽 우주선 납치 버튼 (절대 누르지 마시오)"):
+if st.sidebar.button("👽 우주선 납치 버튼"):
     st.balloons()
-    st.toast("🛸 왹왹왹! 지구인을 납치했다!!!")
+    st.toast("🛸 왹왹! 지구인 주식 전사 1호 납치 완료!")
 
-# 데이터 시각화 메인 로직
+# 메인 주식 계산 로직
 if not selected_names:
     st.error("👽 종목을 골라라 지구인아!!! 안 고르면 지구를 폭파하겠다!!! 💣")
 else:
@@ -270,22 +302,21 @@ else:
                 st.error(f"🛸 {name} 통신 두절! : {e}")
 
     if price_data:
-        # 1. 미친 네온 차트
+        # 1. 뇌정지 네온 수익률 레이스 차트 📊
         st.markdown('<div class="content-box">', unsafe_allow_html=True)
         st.markdown("<h2 style='color:#00ff00; text-align:center;'>📈 뇌정지 수익률 배틀그라운드</h2>", unsafe_allow_html=True)
 
         return_fig = go.Figure()
         return_summary = []
-        
         neon_colors = ["#ff00ff", "#00ffff", "#ffff00", "#ff0000", "#00ff00", "#ffffff"]
 
         for idx, (name, df) in enumerate(price_data.items()):
             close = df['Close']
             normalized = (close / close.iloc[0] - 1) * 100
             
-            # 주가 조작 폭등 연출
+            # 💸 무한 주가 조작 (왹 소유 단위로 왜곡)
             if st.session_state.stock_pump:
-                normalized = normalized * 99999 + random.randint(10000, 50000)
+                normalized = normalized * 1234567 + random.randint(50000, 150000)
 
             line_color = neon_colors[idx % len(neon_colors)]
             
@@ -294,8 +325,8 @@ else:
                 y=normalized,
                 mode='lines+markers',
                 name=f"🛸 {name}",
-                line=dict(width=4, color=line_color),
-                marker=dict(size=8, symbol='star')
+                line=dict(width=6, color=line_color), # 대폭 굵어진 선!
+                marker=dict(size=12, symbol='star-diamond') # 광란의 별다이아몬드형 마커!
             ))
             final_return = float(normalized.iloc[-1])
             
@@ -306,36 +337,35 @@ else:
             plot_bgcolor='black',
             paper_bgcolor='black',
             title=dict(text="🌌 안드로메다 수익률 레이스", font=dict(color='#00ff00', size=24)),
-            xaxis=dict(gridcolor='#555555', tickfont=dict(color='#00ff00')),
-            yaxis=dict(gridcolor='#555555', tickfont=dict(color='#00ff00')),
+            xaxis=dict(gridcolor='#ff00ff', tickfont=dict(color='#00ff00')), # 핑크 그리드로 눈부시게!
+            yaxis=dict(gridcolor='#00ffff', tickfont=dict(color='#00ff00')), # 파란 그리드로!
             legend=dict(font=dict(color='#00ff00')),
-            height=500
+            height=550
         )
         st.plotly_chart(return_fig, use_container_width=True)
 
-        # 수익률 순위표
+        # 수익률 표
         summary_df = pd.DataFrame(return_summary)
         st.markdown("<h3 style='color:#ff00ff;'>🏆 현 시각 우주 서열 (수익률 순)</h3>", unsafe_allow_html=True)
         st.dataframe(summary_df, use_container_width=True, hide_index=True)
         st.markdown('</div>', unsafe_allow_html=True)
 
-        # 2. 광기의 캔들 차트
+        # 2. 광란의 캔들 차트 🕯️
         st.markdown('<div class="content-box">', unsafe_allow_html=True)
         st.markdown("<h2 style='color:#ffff00; text-align:center;'>🕯️ 우주 에너지 파동 (캔들차트)</h2>", unsafe_allow_html=True)
 
         chart_name = st.selectbox("🛸 스캔할 지구 기업을 선택하라:", list(price_data.keys()))
         chart_df = price_data[chart_name]
 
-        # 주가 조작 폭등 시 캔들 가격 조절
         open_val = chart_df['Open']
         high_val = chart_df['High']
         low_val = chart_df['Low']
         close_val = chart_df['Close']
         if st.session_state.stock_pump:
-            open_val *= 12345
-            high_val *= 12345
-            low_val *= 12345
-            close_val *= 12345
+            open_val *= 99999
+            high_val *= 99999
+            low_val *= 99999
+            close_val *= 99999
 
         candle_fig = go.Figure(data=[go.Candlestick(
             x=chart_df.index,
@@ -343,16 +373,16 @@ else:
             high=high_val,
             low=low_val,
             close=close_val,
-            increasing_line_color='#ff00ff',
-            decreasing_line_color='#00ffff'
+            increasing_line_color='#00ff00', # 상승은 형광초록!
+            decreasing_line_color='#ff0000'  # 하락은 피눈물 빨강!
         )])
         
         candle_fig.update_layout(
             plot_bgcolor='black',
             paper_bgcolor='black',
             title=dict(text=f"☄️ {chart_name} 에너지 분출 강도", font=dict(color='#ffff00', size=24)),
-            xaxis=dict(gridcolor='#555555', tickfont=dict(color='#ffff00'), rangeslider_visible=False),
-            yaxis=dict(gridcolor='#555555', tickfont=dict(color='#ffff00')),
+            xaxis=dict(gridcolor='#ff00ff', tickfont=dict(color='#ffff00'), rangeslider_visible=False),
+            yaxis=dict(gridcolor='#00ffff', tickfont=dict(color='#ffff00')),
             height=450
         )
         st.plotly_chart(candle_fig, use_container_width=True)
@@ -361,10 +391,10 @@ else:
     else:
         st.error("👽 지구 인터넷이 너무 느리다!!! 으아아아아악!!! 🛸")
 
-# 왹져 전용 푸터
+# 왹져 전용 지옥의 푸터
 st.markdown("""
-<div style="background-color: #000000; border: 5px dashed #00ff00; padding: 20px; text-align: center; margin-top: 50px;">
-    <p style="color: #ff00ff; font-size: 20px;">🛸 본 앱은 당곡고등학교 왹져 연구소에서 개발되었습니다. 🛸</p>
-    <p style="color: #00ffff; font-size: 14px;">Copyright © 3026 Alien Investment Group. All rights reserved.</p>
+<div style="background-color: #000000; border: 10px dashed #00ff00; padding: 20px; text-align: center; margin-top: 50px; transform: rotate(1deg);">
+    <p style="color: #ff00ff; font-size: 25px;">👽 본 앱은 당곡고등학교 왹져 사령부 컴퓨터에서 작동 중입니다. 👽</p>
+    <p style="color: #00ffff; font-size: 16px;">Copyright © 3026 Alien Empire. Earth Will Be Destroyed Soon.</p>
 </div>
 """, unsafe_allow_html=True)
