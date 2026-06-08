@@ -186,7 +186,7 @@ st.markdown("""
 st.markdown("""
 <div style="text-align: center; margin: 30px 0; transform: skew(-15deg) rotate(-2deg);">
     <span style="font-size: 80px; color: #ffff00; font-weight: bold; text-shadow: 6px 6px 0px #ff0000, -6px -6px 0px #0000ff;">
-        🪐 왹져 은하 연합 금융 침공 🪐
+        🪐 성간비행모금회 🪐
     </span>
 </div>
 """, unsafe_allow_html=True)
